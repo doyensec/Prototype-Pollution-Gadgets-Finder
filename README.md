@@ -30,8 +30,8 @@ Please ensure your pull request includes:
 - A valid proof of concept demonstrating the gadget in action.
 
 ## Screenshots
-1. ![Screenshot 0](screenshot_0.png)
-2. ![Screenshot 1](screenshot_1.png)
+![Screenshot 0](screenshot_0.png)
+![Screenshot 1](screenshot_1.png)
 
 ## Disclaimer
 This tool is intended for educational and ethical testing purposes only. The authors are not responsible for any misuse or damage caused by this tool.
