@@ -20,7 +20,7 @@ gadgets = [
     },
     {
         "payload": {"baseurl": "https://<URL>"},
-        "description": "Gadget for modifying 'baseurl', similar to 'baseURL', potentially leading to SSRF or sensitive data exposure.",
+        "description": "Gadget for modifying 'baseurl', which can lead to Server-Side Request Forgery (SSRF) or exposure of sensitive API keys in libraries like Axios.",
         "null_payload": {"baseurl": {}}
     },
     {
@@ -59,14 +59,15 @@ gadgets = [
         "null_payload": {"ssrCssVars": {}}
     },
     {
-        "payload": {
-            "host": "<URL>",
-        },
-        "description": "Gadget for exploiting Got 11.8.3 by modifying request properties to perform SSRF. More information about exploitation: https://www.yeswehack.com/learn-bug-bounty/server-side-prototype-pollution-how-to-detect-and-exploit",
-        "null_payload": {
-            "host": {},
-        }
-    }
+        "payload": {"host": "<URL>"},
+        "description": "Gadget for exploiting Got ^11.8.3 by modifying request properties to perform SSRF. More information about exploitation: https://www.yeswehack.com/learn-bug-bounty/server-side-prototype-pollution-how-to-detect-and-exploit",
+        "null_payload": {"host": {}}
+    },
+    {
+        "payload": {"hostname": "<URL>"},
+        "description": "Gadget for modifying 'hostname', which can lead to Server-Side Request Forgery (SSRF) or exposure of sensitive API keys in HTTP libraries.",
+        "null_payload": {"hostname": {}}
+    },
 ]
 
 class PollingThread(Thread):
