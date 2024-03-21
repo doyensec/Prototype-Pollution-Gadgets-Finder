@@ -1,7 +1,7 @@
-# Server Side Prototype Pollution Gadgets Scanner
+# Prototype Pollution Gadgets Finder
 
 ## Description
-The Server Side Prototype Pollution Gadgets Scanner is a powerful Burp Suite extension designed to detect and analyze server-side prototype pollution vulnerabilities in web applications. This tool automates the process of scanning requests to identify potential prototype pollution issues. It exploits known gadgets - methods of leveraging prototype pollution to execute harmful actions - particularly focusing on Node.js libraries.
+The Prototype Pollution Gadgets Finder is a powerful Burp Suite extension designed to detect and analyze server-side prototype pollution vulnerabilities in web applications. This tool automates the process of scanning requests to identify potential prototype pollution issues. It exploits known gadgets - methods of leveraging prototype pollution to execute harmful actions - particularly focusing on Node.js libraries.
 
 ## Features
 - Automated scanning of HTTP requests for prototype pollution vulnerabilities.
@@ -10,12 +10,12 @@ The Server Side Prototype Pollution Gadgets Scanner is a powerful Burp Suite ext
 
 ## How to Use
 1. Load the extension in Burp Suite.
-2. Right-click on any HTTP request and select "Extensions -> Server Side Prototype Pollution Gadgets Scanner -> Scan Gadgets"
+2. Right-click on any HTTP request and select "Extensions -> Prototype Pollution Gadgets Finder -> Scan Gadgets"
 3. The extension will analyze the request and attempt to poison the prototype if the application is vulnerable.
 4. Review the results to identify potential gadgets and their impacts.
 
 ## Contributions
-We welcome contributions to the Server Side Prototype Pollution Gadgets Scanner! If you have a new gadget to add, please submit a pull request with the following format:
+We welcome contributions to the Prototype Pollution Gadgets Finder! If you have a new gadget to add, please submit a pull request with the following format:
 
 ```json
 {

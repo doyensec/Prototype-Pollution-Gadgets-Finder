@@ -260,7 +260,7 @@ class BurpExtender(IBurpExtender, IContextMenuFactory):
     def registerExtenderCallbacks(self, callbacks):
         self._callbacks = callbacks
         self._helpers = callbacks.getHelpers()
-        self._callbacks.setExtensionName("Server Side Prototype Pollution Gadgets Scanner")
+        self._callbacks.setExtensionName("Prototype Pollution Gadgets Finder")
         self._callbacks.registerContextMenuFactory(self)
         return
 
