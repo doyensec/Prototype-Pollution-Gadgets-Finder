@@ -16,17 +16,17 @@ gadgets = [
     {
         "payload": {"baseURL": "https://<URL>"},
         "description": "Gadget for modifying 'baseURL', which can lead to Server-Side Request Forgery (SSRF) or exposure of sensitive API keys in libraries like Axios.",
-        "null_payload": {"baseURL": {}}
+        "null_payload": {"baseURL": None}
     },
     {
         "payload": {"baseurl": "https://<URL>"},
         "description": "Gadget for modifying 'baseurl', which can lead to Server-Side Request Forgery (SSRF) or exposure of sensitive API keys in libraries like Axios.",
-        "null_payload": {"baseurl": {}}
+        "null_payload": {"baseurl": None}
     },
     {
         "payload": {"proxy": {"protocol": "http", "host": "<URL>", "port": 80}},
         "description": "Gadget for setting a proxy, which can be used to manipulate or intercept HTTP requests, potentially revealing sensitive information.",
-        "null_payload": {"proxy": {}}
+        "null_payload": {"proxy": None}
     },
     {
         "payload": {"cc": "email@<URL>"},
@@ -61,12 +61,12 @@ gadgets = [
     {
         "payload": {"host": "<URL>"},
         "description": "Gadget for exploiting Got ^11.8.3 by modifying request properties to perform SSRF. More information about exploitation: https://www.yeswehack.com/learn-bug-bounty/server-side-prototype-pollution-how-to-detect-and-exploit",
-        "null_payload": {"host": {}}
+        "null_payload": {"host": None}
     },
     {
         "payload": {"hostname": "<URL>"},
         "description": "Gadget for modifying 'hostname', which can lead to Server-Side Request Forgery (SSRF) or exposure of sensitive API keys in HTTP libraries.",
-        "null_payload": {"hostname": {}}
+        "null_payload": {"hostname": None}
     },
 ]
 
