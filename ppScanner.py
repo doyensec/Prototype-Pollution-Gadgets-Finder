@@ -71,33 +71,40 @@ gadgets = [
 ]
 
 class PollingThread(Thread):
-    def __init__(self, collaborator_context, collaborator_url, callback):
+    def __init__(self, collaborator_context):
         Thread.__init__(self)
         self.collaborator_context = collaborator_context
-        self.collaborator_url = collaborator_url
-        self.callback = callback
+        self.callbacks = {}
         self._running = True
 
     def run(self):
         while self._running:
-            try:
-                interactions = self.collaborator_context.fetchCollaboratorInteractionsFor(self.collaborator_url)
-                if interactions:
-                    self.callback(interactions)
-                    self._running = False
-            except Exception as e:
-                print("Error obtaining interactions: {}".format(e))
-                self._running = False
-            time.sleep(10)
+            for collaborator_url, callback in list(self.callbacks.items()):
+                try:
+                    interactions = self.collaborator_context.fetchCollaboratorInteractionsFor(collaborator_url)
+                    if interactions:
+                        callback(interactions)
+                except Exception as e:
+                    print("Error obtaining interactions for {}: {}".format(collaborator_url, e))
+            time.sleep(2)
 
+    def add_collaborator(self, collaborator_url, callback):
+        self.callbacks[collaborator_url] = callback
+
+    def remove_collaborator(self, collaborator_url):
+        if collaborator_url in self.callbacks:
+            del self.callbacks[collaborator_url]
 
     def stop(self):
         self._running = False
 
+
 class ScanWorker(SwingWorker):
-    def __init__(self, extender, traffic):
+    def __init__(self, extender, traffic, collaborator_context, polling_thread):
         self.extender = extender
         self.traffic = traffic
+        self.collaborator_context = collaborator_context
+        self.polling_thread = polling_thread
 
     def create_modified_request(self, traffic, new_body):
         request_info = self.extender._helpers.analyzeRequest(traffic)
@@ -135,15 +142,11 @@ class ScanWorker(SwingWorker):
                 print("Error decoding JSON:", e)
                 return None
             
-            collaborator_context = self.extender._callbacks.createBurpCollaboratorClientContext()
-            
-            self.modify_and_send_requests(json_body, collaborator_context)
+            self.modify_and_send_requests(json_body, self.collaborator_context)
 
         return None
     
     def modify_and_send_requests(self, data, collaborator_context, path=[]):
-
-        collaborator_url = collaborator_context.generatePayload(True)
 
         for gadget in gadgets:
             modified_data = copy.deepcopy(data)
@@ -178,7 +181,7 @@ class ScanWorker(SwingWorker):
                     parent_level[path[-1]] = {"__proto__": payload}
                     null_parent_level[path[-1]] = {"__proto__": gadget["null_payload"]}
 
-            self.send_request_and_start_polling(modified_data, null_modified_data, collaborator_context, collaborator_url, gadget["description"])
+            self.send_request_and_start_polling(modified_data, null_modified_data, collaborator_url, gadget["description"])
     
         original_level = data
         for key in path:
@@ -197,12 +200,13 @@ class ScanWorker(SwingWorker):
             for i in range(len(original_level)):
                 self.modify_and_send_requests(data, collaborator_context, path + [i])
 
-    def send_request_and_start_polling(self, modified_data, null_modified_data, collaborator_context, collaborator_url, gadget_description):
+    def send_request_and_start_polling(self, modified_data, null_modified_data, collaborator_url, gadget_description):
         modified_request = self.create_modified_request(self.traffic, json.dumps(modified_data))
         null_modified_request = self.create_modified_request(self.traffic, json.dumps(null_modified_data))
         modified_request_response = self.extender._callbacks.makeHttpRequest(self.traffic.getHttpService(), modified_request)
-        polling_thread = PollingThread(collaborator_context, collaborator_url, lambda interactions: self.handle_collaborator_interaction(interactions, modified_request_response, gadget_description, null_modified_request))
-        polling_thread.start()
+        callback = lambda interactions: self.handle_collaborator_interaction(interactions, modified_request_response, gadget_description, null_modified_request)
+        self.polling_thread.add_collaborator(collaborator_url, callback)
+
 
     def handle_collaborator_interaction(self, interactions, modified_request_response, gadget_description, null_modified_request):
         issueDescription = (
@@ -262,6 +266,9 @@ class BurpExtender(IBurpExtender, IContextMenuFactory):
         self._helpers = callbacks.getHelpers()
         self._callbacks.setExtensionName("Prototype Pollution Gadgets Finder")
         self._callbacks.registerContextMenuFactory(self)
+        self.collaborator_context = self._callbacks.createBurpCollaboratorClientContext()
+        self.polling_thread = PollingThread(self.collaborator_context)
+        self.polling_thread.start()
         return
 
     def createMenuItems(self, invocation):
@@ -274,9 +281,8 @@ class BurpExtender(IBurpExtender, IContextMenuFactory):
     def scan_item(self, event):
         http_traffic = self._context.getSelectedMessages()
         for traffic in http_traffic:
-            worker = ScanWorker(self, traffic)
+            worker = ScanWorker(self, traffic, self.collaborator_context, self.polling_thread)
             worker.execute()
-
 
 
 class CustomScanIssue(IScanIssue):
